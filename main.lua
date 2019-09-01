@@ -28,16 +28,16 @@ local function formatSetting(setting)
 end
 
 local function throttle(func, seconds)
-	local lastCalled = 0
+  local lastCalled = 0
 
-	return function(...)
+  return function(...)
     if (time() - lastCalled < seconds) then
-			return
+      return
     end
-		
-		lastCalled = time()
-		return func(...)
-	end
+    
+    lastCalled = time()
+    return func(...)
+  end
 end
 
 local throttledBamSound = throttle(function() PlaySoundFile(BAM_SOUND, 'Master') end, THROTTLE_SECONDS)
@@ -48,21 +48,21 @@ local throttledBaaamSound = throttle(function() PlaySoundFile(BAAAM_SOUND, 'Mast
 local f = CreateFrame("Frame")
 f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 f:SetScript("OnEvent", function(self, event)
-	self:OnEvent(event, CombatLogGetCurrentEventInfo())
+  self:OnEvent(event, CombatLogGetCurrentEventInfo())
 end)
 
 function f:OnEvent(event, ...)
-	local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
-	local spellId, spellName, spellSchool
-	local amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
+  local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
+  local spellId, spellName, spellSchool
+  local amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
   
-	if (subevent == "SWING_DAMAGE") then
-		amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
-	elseif (subevent == "SPELL_DAMAGE") then
-		spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
+  if (subevent == "SWING_DAMAGE") then
+    amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
+  elseif (subevent == "SPELL_DAMAGE") then
+    spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
   end
-	
-	if (ends_with(subevent, '_DAMAGE') and critical and sourceGUID == PLAYER_GUID) then
+  
+  if (ends_with(subevent, '_DAMAGE') and critical and sourceGUID == PLAYER_GUID) then
     if (BamCharSettings['TRIGGER_ON_SWING'] or spellId) then
       if (overkill and overkill > 0) and BamCharSettings['BAAAM_ON_OVERKILL'] then
         if (BamCharSettings['THROTTLE_SOUNDS']) then
