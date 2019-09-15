@@ -28,53 +28,75 @@ local function formatSetting(setting)
 end
 
 local function throttle(func, seconds)
-  local lastCalled = 0
+	local lastCalled = 0
 
-  return function(...)
+	return function(...)
     if (time() - lastCalled < seconds) then
-      return
+			return
     end
-    
-    lastCalled = time()
-    return func(...)
-  end
+		
+		lastCalled = time()
+		return func(...)
+	end
 end
 
-local throttledBamSound = throttle(function() PlaySoundFile(BAM_SOUND, 'Master') end, THROTTLE_SECONDS)
-local throttledBaaamSound = throttle(function() PlaySoundFile(BAAAM_SOUND, 'Master') end, THROTTLE_SECONDS)
+local function output(sound, spell, dmg)
+	PlaySoundFile(sound, 'Master')
+	
+	if (spell == nil) then
+		return
+	end
+	
+	if (BamCharSettings[spell] == nil) then
+		BamCharSettings[spell] = dmg
+		print('|cffffff00New Crit: ' .. spell .. ' - ' .. dmg)
+	elseif (dmg > BamCharSettings[spell]) then
+		BamCharSettings[spell] = dmg
+		print('|cffffff00New Crit: ' .. spell .. ' - ' .. dmg)
+	end
+	
+end
+
+local function throttledBamSound(spell, dmg)
+	throttle(function() output(BAM_SOUND, spell, dmg) end, THROTTLE_SECONDS)
+end
+
+local function throttledBaaamSound(spell, dmg)
+	throttle(function() output(BAAAM_SOUND, spell, dmg) end, THROTTLE_SECONDS)
+end
 
 -- Application Code
 
 local f = CreateFrame("Frame")
 f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 f:SetScript("OnEvent", function(self, event)
-  self:OnEvent(event, CombatLogGetCurrentEventInfo())
+	self:OnEvent(event, CombatLogGetCurrentEventInfo())
 end)
 
 function f:OnEvent(event, ...)
-  local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
-  local spellId, spellName, spellSchool
-  local amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
+	local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
+	local spellId, spellName, spellSchool
+	local amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
   
-  if (subevent == "SWING_DAMAGE") then
-    amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
-  elseif (subevent == "SPELL_DAMAGE") then
-    spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
+	if (subevent == "SWING_DAMAGE") then
+		amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
+	elseif (subevent == "SPELL_DAMAGE") then
+		spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
   end
-  
-  if (ends_with(subevent, '_DAMAGE') and critical and sourceGUID == PLAYER_GUID) then
+	
+	if (ends_with(subevent, '_DAMAGE') and critical and sourceGUID == PLAYER_GUID) then
     if (BamCharSettings['TRIGGER_ON_SWING'] or spellId) then
       if (overkill and overkill > 0) and BamCharSettings['BAAAM_ON_OVERKILL'] then
         if (BamCharSettings['THROTTLE_SOUNDS']) then
-          throttledBaaamSound()
+          throttledBaaamSound(spellName, amount)
         else
-          PlaySoundFile(BAAAM_SOUND, 'Master')
+          output(BAAAM_SOUND, spellName, amount)
         end
       else
         if (BamCharSettings['THROTTLE_SOUNDS']) then
-          throttledBamSound()
+          throttledBamSound(spellName, amount)
         else
-          PlaySoundFile(BAM_SOUND, 'Master')
+          output(BAM_SOUND, spellName, amount)
         end
       end
     end
@@ -92,6 +114,13 @@ SlashCmdList['BAM'] = function(command)
   elseif (command == 'throttle') then
     BamCharSettings['THROTTLE_SOUNDS'] = not BamCharSettings['THROTTLE_SOUNDS']
     printBam('-- Only play sounds every ' .. THROTTLE_SECONDS .. ' seconds (ANTI-BLIZZARD MODE! NO BABABABABABAM!)', formatSetting(BamCharSettings['THROTTLE_SOUNDS']))
+  elseif (command == 'print') then
+	print('|cffffff00Highscores:')
+	for spell, dmg in pairs(BamCharSettings) do
+		if spell ~= 'TRIGGER_ON_SWING' and spell ~= 'BAAAM_ON_OVERKILL' and spell ~= 'THROTTLE_SOUNDS' then
+			print('|cffffff00' .. spell .. ' - ' .. dmg)
+		end
+	end
   else
     throttledBamSound()
     printBam('Config')
@@ -99,6 +128,7 @@ SlashCmdList['BAM'] = function(command)
     print('/bam swing|n-- Toggle Sound trigger on Weapon(Swing) crits.', 'Currently', formatSetting(BamCharSettings['TRIGGER_ON_SWING']))
     print('/bam overkill|n-- Toggle Different Baaam! sound for Overkill crits.', 'Currently', formatSetting(BamCharSettings['BAAAM_ON_OVERKILL']))
     print('/bam throttle|n-- Toggle Only play sounds every 2 seconds (ANTI-BLIZZARD MODE! NO BABABABABABAM!).', 'Currently', formatSetting(BamCharSettings['THROTTLE_SOUNDS']))
+    print('/bam print|n-- Prints out highscores.')
   end
 end
 
