@@ -60,6 +60,8 @@ function f:OnEvent(event, ...)
     amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
   elseif (subevent == "SPELL_DAMAGE") then
     spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
+  elseif (subevent == "RANGE_DAMAGE") then
+    spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
   end
   
   if (ends_with(subevent, '_DAMAGE') and critical and sourceGUID == PLAYER_GUID) then
