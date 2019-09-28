@@ -54,11 +54,14 @@ end)
 function f:OnEvent(event, ...)
   local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
   local spellId, spellName, spellSchool
+  local environmentalType
   local amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
   
   if (subevent == "SWING_DAMAGE") then
     amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
-  elseif (subevent == "SPELL_DAMAGE") then
+  elseif (subevent == "ENVIRONMENTAL_DAMAGE") then
+    environmentalType, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
+  else
     spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = select(12, ...)
   end
   
