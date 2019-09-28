@@ -2,7 +2,7 @@
 ## Title: Bam!
 ## Notes: Plays Sounds each time you crit
 ## Author: maggo me@mar.co.de
-## Version: 0.0.1
+## Version: @project-version@
 ## SavedVariablesPerCharacter: BamCharSettings
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
