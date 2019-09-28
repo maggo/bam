@@ -44,15 +44,18 @@ local function output(sound, spell, dmg)
 	PlaySoundFile(sound, 'Master')
 	
 	if (spell == nil) then
-		return
+		if (dmg == nil) then
+			return
+		end
+		spell = 'STD'
 	end
 	
 	if (BamCharSettings[spell] == nil) then
 		BamCharSettings[spell] = dmg
-		print('|cffffff00New Crit: ' .. spell .. ' - ' .. dmg)
+		print('|cffffff00New Highscore: ' .. spell .. ' - ' .. dmg)
 	elseif (dmg > BamCharSettings[spell]) then
 		BamCharSettings[spell] = dmg
-		print('|cffffff00New Crit: ' .. spell .. ' - ' .. dmg)
+		print('|cffffff00New Highscore: ' .. spell .. ' - ' .. dmg)
 	end
 	
 end
